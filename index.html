@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Urban Tourism in Karachi — Site Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  html,body{margin:0;height:100%;font-family:"Segoe UI",Arial,sans-serif;}
+  #map{position:absolute;inset:0;}
+  .panel{position:absolute;z-index:1000;background:#fff;border-radius:8px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);}
+  #header{top:12px;left:12px;padding:12px 16px;max-width:300px;}
+  #header h1{margin:0;font-size:17px;color:#1F3A54;}
+  #header p{margin:4px 0 0;font-size:12px;color:#666;}
+  #search{margin-top:8px;width:100%;box-sizing:border-box;padding:6px 8px;
+    border:1px solid #ddd;border-radius:5px;font-size:13px;}
+  #legend{bottom:20px;left:12px;padding:10px 12px;font-size:12.5px;}
+  #legend b{display:block;margin-bottom:6px;color:#1F3A54;font-size:12px;}
+  .lgd{display:flex;align-items:center;gap:8px;padding:3px 4px;cursor:pointer;
+    border-radius:4px;user-select:none;}
+  .lgd:hover{background:#f4f4f4;}
+  .lgd.off{opacity:.35;}
+  .dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;
+    box-shadow:0 0 0 1px rgba(0,0,0,.25);flex:none;}
+  .count{margin-left:auto;color:#999;font-size:11px;}
+  .leaflet-popup-content{margin:0;width:300px !important;}
+  .pk{font-family:"Segoe UI",Arial,sans-serif;}
+  .pk .t{font-size:15px;font-weight:600;color:#1F3A54;padding:10px 12px 8px;}
+  .pk img{width:100%;display:block;background:#f0f0ee;}
+  .pk .d{font-size:12.5px;line-height:1.45;color:#333;padding:8px 12px 4px;}
+  .pk .c{font-size:10.5px;font-style:italic;color:#888;padding:0 12px 10px;}
+  .pk .cat{font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+    padding:0 12px 8px;font-weight:600;}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="header" class="panel">
+  <h1>Urban Tourism in Karachi</h1>
+  <p>196 mapped sites across 7 categories. Click a marker for details.</p>
+  <input id="search" placeholder="Search sites…" autocomplete="off"/>
+</div>
+<div id="legend" class="panel"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let SITES = [];
+const CATS  = {"Natural, Scenic or Environmental Attractions": ["Natural & Scenic", "#2E8B7A"], "Historic Buildings": ["Historic Buildings", "#AB4B36"], "Recent Major Infrastructure": ["Infrastructure", "#1F3A54"], "Markets": ["Markets", "#D9A441"], "Food Streets": ["Food Streets", "#C0562B"], "Leisure Activities": ["Leisure & Recreation", "#6C7B3B"], "Religous Sites": ["Religious Sites", "#6E2E37"]};
+const IMG_BASE = "images/";   // put this file next to your images folder
+
+const map = L.map('map',{zoomControl:true}).setView([24.87,67.03],11);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
+}).addTo(map);
+
+const off = new Set();          // hidden categories
+let query = "";
+const layer = L.layerGroup().addTo(map);
+
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function popupHtml(s){
+  const color = (CATS[s.cat]||["","#888"])[1];
+  const label = (CATS[s.cat]||[s.cat])[0];
+  const img = s.img ? '<img src="'+IMG_BASE+encodeURIComponent(s.img)+'" '
+      +'onerror="this.style.display=\'none\'"/>' : '';
+  return '<div class="pk">'
+    + '<div class="t">'+esc(s.name)+'</div>'
+    + img
+    + '<div class="cat" style="color:'+color+'">'+esc(label)+'</div>'
+    + (s.desc?'<div class="d">'+esc(s.desc)+'</div>':'')
+    + (s.credit?'<div class="c">'+esc(s.credit)+'</div>':'')
+    + '</div>';
+}
+function draw(){
+  layer.clearLayers();
+  SITES.forEach(s=>{
+    if(off.has(s.cat)) return;
+    if(query && !s.name.toLowerCase().includes(query)) return;
+    const color=(CATS[s.cat]||["","#888"])[1];
+    L.circleMarker([s.lat,s.lon],{radius:6,color:"#fff",weight:1.5,
+      fillColor:color,fillOpacity:.95})
+      .bindPopup(popupHtml(s),{maxWidth:300})
+      .bindTooltip(s.name,{direction:"top"})
+      .addTo(layer);
+  });
+}
+function buildLegend(){
+  const counts={};SITES.forEach(s=>counts[s.cat]=(counts[s.cat]||0)+1);
+  let lg='<b>Categories — click to filter</b>';
+  Object.keys(CATS).forEach(k=>{
+    const [label,color]=CATS[k];
+    lg+='<div class="lgd" data-cat="'+encodeURIComponent(k)+'">'
+       +'<span class="dot" style="background:'+color+'"></span>'
+       +label+'<span class="count">'+(counts[k]||0)+'</span></div>';
+  });
+  const legend=document.getElementById('legend');legend.innerHTML=lg;
+  legend.querySelectorAll('.lgd').forEach(el=>{
+    el.onclick=()=>{const c=decodeURIComponent(el.dataset.cat);
+      if(off.has(c)){off.delete(c);el.classList.remove('off');}
+      else{off.add(c);el.classList.add('off');} draw();};
+  });
+}
+
+fetch('sites.json')
+  .then(r=>{
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  })
+  .then(data=>{
+    SITES = data;
+    buildLegend();
+    document.getElementById('search').addEventListener('input',e=>{
+      query=e.target.value.toLowerCase().trim(); draw();
+    });
+    draw();
+  })
+  .catch(err=>{
+    document.getElementById('legend').innerHTML =
+      '<b style="color:#AB4B36">Couldn\'t load sites.json</b>'
+      +'<div style="font-size:11.5px;color:#666;margin-top:4px;max-width:220px;">'
+      +'This page needs to be served over http(s) — opening the file directly '
+      +'(file://) won\'t work. Try GitHub Pages or a local server.<br><br>'
+      +'Error: '+esc(err.message)+'</div>';
+    console.error('Failed to load sites.json:', err);
+  });
+</script>
+</body>
+</html>
