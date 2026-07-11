@@ -32,6 +32,25 @@
   .pk .c{font-size:10.5px;font-style:italic;color:#888;padding:0 12px 10px;}
   .pk .cat{font-size:10px;text-transform:uppercase;letter-spacing:.5px;
     padding:0 12px 8px;font-weight:600;}
+  
+  #ackOverlay{position:fixed;inset:0;z-index:2000;background:rgba(31,58,84,.45);
+    display:flex;align-items:center;justify-content:center;padding:16px;}
+  #ackOverlay.hidden{display:none;}
+  #ackModal{background:#fff;border-radius:10px;max-width:440px;width:100%;
+    box-shadow:0 8px 30px rgba(0,0,0,.25);padding:24px 26px 20px;
+    font-family:"Segoe UI",Arial,sans-serif;position:relative;}
+  #ackModal h2{margin:0 0 4px;font-size:16px;color:#1F3A54;}
+  #ackModal .sub{font-size:11.5px;color:#888;margin:0 0 14px;font-style:italic;}
+  #ackModal p{font-size:13px;line-height:1.6;color:#333;margin:0 0 12px;}
+  #ackModal .sig{font-size:13px;color:#333;margin-top:16px;}
+  #ackModal .sig b{color:#1F3A54;}
+  #ackClose{margin-top:14px;width:100%;padding:9px 0;border:none;border-radius:6px;
+    background:#1F3A54;color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
+  #ackClose:hover{background:#28496b;}
+  #ackX{position:absolute;top:10px;right:14px;border:none;background:none;
+    font-size:18px;color:#999;cursor:pointer;line-height:1;}
+  #ackX:hover{color:#555;}
+  
 </style>
 </head>
 <body>
@@ -43,8 +62,30 @@
 </div>
 <div id="legend" class="panel"></div>
 
+<div id="ackOverlay">
+  <div id="ackModal">
+    <button id="ackX" aria-label="Close">&times;</button>
+    <h2>Acknowledgement</h2>
+    <p class="sub">Course: Urban Tourism</p>
+    <p>I would like to express my deepest gratitude to my course supervisor, Dr. Anila Kausar, for her invaluable guidance, patience, and support throughout the development of this project.</p>
+    <p>I hope this project comes close to what you had envisioned for it, and that, with the contributions of fellow students, we will be able to develop it further into an informative tourism guide for Pakistan.</p>
+    <p>Thank you very much for sharing your vision.</p>
+    <p class="sig">Regards,<br/><b>Aisha Aziz</b></p>
+    <button id="ackClose">Continue to Map</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+
+(function(){
+  const overlay = document.getElementById('ackOverlay');
+  const close = ()=>overlay.classList.add('hidden');
+  document.getElementById('ackClose').addEventListener('click', close);
+  document.getElementById('ackX').addEventListener('click', close);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+})();
+  
 let SITES = [];
 const CATS  = {"Natural, Scenic or Environmental Attractions": ["Natural & Scenic", "#2E8B7A"], "Historic Buildings": ["Historic Buildings", "#AB4B36"], "Recent Major Infrastructure": ["Infrastructure", "#1F3A54"], "Markets": ["Markets", "#D9A441"], "Food Streets": ["Food Streets", "#C0562B"], "Leisure Activities": ["Leisure & Recreation", "#6C7B3B"], "Religous Sites": ["Religious Sites", "#6E2E37"]};
 const IMG_BASE = "images/";   // put this file next to your images folder
