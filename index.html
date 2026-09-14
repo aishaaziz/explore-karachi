@@ -93,11 +93,16 @@ const IMG_BASE = "images/";   // put this file next to your images folder
 
 const map = L.map('map',{zoomControl:true}).setView([24.87,67.03],11);
 
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
-  apikey: 'd7229aae-c119-4b81-8a75-d0a24e2b1c76',
+// L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+//   apikey: 'd7229aae-c119-4b81-8a75-d0a24e2b1c76',
+//   attribution: 'Data &copy; Aisha Aziz &copy; OpenStreetMap &copy; Stadia Maps',
+//   subdomains: 'abcd',
+//   maxZoom: 19
+// }).addTo(map);
+
+L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=d7229aae-c119-4b81-8a75-d0a24e2b1c76', {
   attribution: 'Data &copy; Aisha Aziz &copy; OpenStreetMap &copy; Stadia Maps',
-  subdomains: 'abcd',
-  maxZoom: 19
+  maxZoom: 20
 }).addTo(map);
   
 // L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',{
